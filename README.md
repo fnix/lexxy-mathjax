@@ -92,7 +92,9 @@ Note: `typesetPromise` scans for `\(...\)` delimiters by default; the snippet ab
 
 ## Demo
 
-Serve the repo statically and open the demo:
+Try it online: https://fnix.github.io/lexxy-mathjax/
+
+Or serve the repo statically and open the demo locally:
 
 ```bash
 npx serve .
