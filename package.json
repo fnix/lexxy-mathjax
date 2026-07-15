@@ -21,6 +21,17 @@
     "actiontext"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fnix/lexxy-mathjax.git"
+  },
+  "homepage": "https://github.com/fnix/lexxy-mathjax#readme",
+  "bugs": {
+    "url": "https://github.com/fnix/lexxy-mathjax/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "@37signals/lexxy": ">= 0.9.0"
   },
