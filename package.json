@@ -1,0 +1,36 @@
+{
+  "name": "@fnix/lexxy-mathjax",
+  "version": "0.1.0",
+  "description": "MathJax LaTeX equation extension for Lexxy, the rich text editor for Rails.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./styles": "./styles/lexxy-mathjax.css"
+  },
+  "files": [
+    "src",
+    "styles"
+  ],
+  "keywords": [
+    "lexxy",
+    "lexical",
+    "mathjax",
+    "latex",
+    "rails",
+    "actiontext"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@37signals/lexxy": ">= 0.9.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "demo": "npx serve ."
+  },
+  "devDependencies": {
+    "@37signals/lexxy": "^0.9.24",
+    "jsdom": "^27.0.0",
+    "vitest": "^4.0.0"
+  }
+}

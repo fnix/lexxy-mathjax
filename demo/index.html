@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>@fnix/lexxy-mathjax demo</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@37signals/lexxy@0.9/dist/stylesheets/lexxy.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@37signals/lexxy@0.9/dist/stylesheets/lexxy-variables.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@37signals/lexxy@0.9/dist/stylesheets/lexxy-editor.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@37signals/lexxy@0.9/dist/stylesheets/lexxy-content.css">
+  <link rel="stylesheet" href="../styles/lexxy-mathjax.css">
+
+  <!-- MathJax is host-provided: the extension picks up window.MathJax -->
+  <script>
+    window.MathJax = {
+      tex: { packages: { "[+]": [ "ams" ] } },
+      chtml: { displayAlign: "center" }
+    }
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "@37signals/lexxy": "https://cdn.jsdelivr.net/npm/@37signals/lexxy@0.9/+esm",
+        "@fnix/lexxy-mathjax": "../src/index.js"
+      }
+    }
+  </script>
+
+  <style>
+    body { max-width: 48rem; margin: 2rem auto; font-family: system-ui, sans-serif; }
+    output { display: block; margin-top: 1rem; padding: 1rem; background: #f4f4f5; border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <h1>@fnix/lexxy-mathjax demo</h1>
+  <p>Use the √x toolbar button (or <kbd>Cmd/Ctrl+Shift+E</kbd>) to insert an equation. Click an equation to edit it.</p>
+
+  <lexxy-editor name="content" value="&lt;p&gt;The identity &lt;span data-latex='e^{i\pi} + 1 = 0'&gt;e^{i\pi} + 1 = 0&lt;/span&gt; loads from saved HTML.&lt;/p&gt;&lt;div data-latex='\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}'&gt;\int...&lt;/div&gt;&lt;p&gt;Try editing them.&lt;/p&gt;"></lexxy-editor>
+
+  <h2>Saved HTML output</h2>
+  <output id="html-output"></output>
+
+  <script type="module">
+    import { configure } from "@37signals/lexxy"
+    import MathjaxExtension from "@fnix/lexxy-mathjax"
+
+    configure({
+      global: { extensions: [ MathjaxExtension ] }
+    })
+
+    const editor = document.querySelector("lexxy-editor")
+    const output = document.getElementById("html-output")
+
+    setInterval(() => {
+      const value = editor.value ?? editor.querySelector("input[type=hidden]")?.value
+      if (value != null && output.textContent !== value) output.textContent = value
+    }, 500)
+  </script>
+</body>
+</html>
