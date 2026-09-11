@@ -26,7 +26,8 @@ export async function findMathJax() {
 
 // Typesets LaTeX into the given element, replacing its content. Falls back to
 // showing the raw LaTeX when MathJax is unavailable or the LaTeX is invalid.
-// Calls are serialized because MathJax's conversion pipeline is not reentrant.
+// Calls are serialized because MathJax's own promise chaining only covers
+// conversion, not our DOM insertion and stylesheet refresh below.
 export function typesetInto(element, latex, { display = false } = {}) {
   element.textContent = latex
 
@@ -45,7 +46,9 @@ export function typesetInto(element, latex, { display = false } = {}) {
       element.classList.remove("lexxy-math--error")
 
       // Refresh MathJax's global stylesheet so glyphs used by this equation render.
-      mathjax.startup.document.clear()
+      // reset(), not clear(): clear() also wipes MathJax's record of every
+      // expression the host page itself has typeset, which isn't ours to clear.
+      mathjax.startup.document.reset()
       mathjax.startup.document.updateDocument()
     } catch (error) {
       element.textContent = latex

@@ -9,13 +9,13 @@ beforeEach(() => {
   window.MathJax = {
     startup: {
       promise: Promise.resolve(),
-      document: { clear() {}, updateDocument() {} }
+      document: { reset() {}, updateDocument() {} }
     },
     tex2chtmlPromise: async (latex) => {
-      const span = document.createElement("span")
-      span.className = "MathJax"
-      span.textContent = latex
-      return span
+      const container = document.createElement("mjx-container")
+      container.className = "MathJax"
+      container.textContent = latex
+      return container
     }
   }
 })
