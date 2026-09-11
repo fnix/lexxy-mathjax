@@ -18,7 +18,7 @@ export async function findMathJax() {
   if (!warnedAboutMissingMathJax) {
     warnedAboutMissingMathJax = true
     console.warn("@fnix/lexxy-mathjax: window.MathJax not found. Equations will show raw LaTeX. " +
-      "Load MathJax v3 (tex-chtml) on pages that use the editor.")
+      "Load MathJax v4 (tex-chtml) on pages that use the editor.")
   }
 
   return null

@@ -16,7 +16,7 @@ Equations are stored in the document (and in what ActionText persists) as:
 <div  class="lexxy-math" data-latex="\int_0^1 x\,dx">...</div>         <!-- display/block -->
 ```
 
-Inside the editor the extension typesets these with the page's MathJax. **MathJax is host-provided, not bundled**: load MathJax v3 (`tex-chtml`) on any page that uses the editor or displays saved content.
+Inside the editor the extension typesets these with the page's MathJax. **MathJax is host-provided, not bundled**: load MathJax v4 (`tex-chtml`) on any page that uses the editor or displays saved content. The extension also works against MathJax v3, so hosts already loading v3 can upgrade on their own schedule.
 
 ## Installation
 
@@ -55,12 +55,21 @@ Include the stylesheet (`@fnix/lexxy-mathjax/styles`, or copy `styles/lexxy-math
 
 ```html
 <script>
-  window.MathJax = { chtml: { displayAlign: "center" } }
+  window.MathJax = { output: { displayAlign: "center" } }
 </script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
 ```
 
 If MathJax is missing, the editor still works and equations show their raw LaTeX.
+
+#### MathJax v4 notes
+
+This package persists raw LaTeX (`data-latex`) and re-typesets it on every load, so a few v4 changes are worth knowing about before upgrading a host that already has saved content:
+
+- **Different default font.** v4 defaults to `mathjax-newcm` (New Computer Modern), noticeably lighter than v3's TeX font. Set `output: { font: "mathjax-tex" }` to keep the old look.
+- **`\text{...}` is now macro-parsed.** The `textmacros` extension ships in all v4 combined components, so a backslash or brace inside `\text{}` that was inert in v3 can now raise "undefined control sequence" for existing saved equations.
+- **Font-size macros changed in MathJax 4.1.2** (`\tiny`/`\Tiny` swapped, `\large`…`\Huge` shifted by one), so existing content can render at a different size. Opt out with the `fontsizev3` TeX package (`loader: { load: ["[tex]/fontsizev3"] }, tex: { packages: { "[+]": ["fontsizev3"] } }`) if you pin a floating `@4` range.
+- **Accessibility moved.** v4 turns assistive MathML off by default and turns the expression explorer (speech/braille) on instead. Inside the editor, this extension's own `role="math"` / `aria-label` still describes each equation; on display pages, the explorer is now what makes typeset math accessible.
 
 ## Rails / ActionText integration
 
