@@ -1,23 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest"
 import { Lexical } from "@37signals/lexxy"
 import { MathNode, $createMathNode, $isMathNode } from "../src/nodes/math_node"
+import { installFakeMathJax } from "./support/fake_mathjax"
 
 const { createEditor } = Lexical
 
 // Fake MathJax so typesetInto resolves instantly instead of polling for 10s
 beforeEach(() => {
-  window.MathJax = {
-    startup: {
-      promise: Promise.resolve(),
-      document: { reset() {}, updateDocument() {} }
-    },
-    tex2chtmlPromise: async (latex) => {
-      const container = document.createElement("mjx-container")
-      container.className = "MathJax"
-      container.textContent = latex
-      return container
-    }
-  }
+  installFakeMathJax()
 })
 
 function buildEditor() {
