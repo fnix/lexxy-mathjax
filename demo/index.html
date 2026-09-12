@@ -24,7 +24,8 @@
     {
       "imports": {
         "@37signals/lexxy": "https://cdn.jsdelivr.net/npm/@37signals/lexxy@0.9/+esm",
-        "@fnix/lexxy-mathjax": "../src/index.js"
+        "@fnix/lexxy-mathjax": "../src/index.js",
+        "@fnix/lexxy-mathjax/typeset": "../src/typeset.js"
       }
     }
   </script>
@@ -43,9 +44,14 @@
   <h2>Saved HTML output</h2>
   <output id="html-output"></output>
 
+  <h2>Rendered as a display page</h2>
+  <p>The saved HTML above, rendered with no editor involved — via <code>typesetMath</code> from <code>@fnix/lexxy-mathjax/typeset</code>, the same entry point a Rails show page would use.</p>
+  <div id="display-output" class="lexxy-content"></div>
+
   <script type="module">
     import { configure } from "@37signals/lexxy"
     import MathjaxExtension from "@fnix/lexxy-mathjax"
+    import { typesetMath } from "@fnix/lexxy-mathjax/typeset"
 
     configure({
       global: { extensions: [ MathjaxExtension ] }
@@ -53,10 +59,15 @@
 
     const editor = document.querySelector("lexxy-editor")
     const output = document.getElementById("html-output")
+    const displayOutput = document.getElementById("display-output")
 
     setInterval(() => {
       const value = editor.value ?? editor.querySelector("input[type=hidden]")?.value
-      if (value != null && output.textContent !== value) output.textContent = value
+      if (value == null || output.textContent === value) return
+
+      output.textContent = value
+      displayOutput.innerHTML = value
+      typesetMath(displayOutput, { force: true })
     }, 500)
   </script>
 </body>
