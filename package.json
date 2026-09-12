@@ -1,6 +1,6 @@
 {
   "name": "@fnix/lexxy-mathjax",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MathJax LaTeX equation extension for Lexxy, the rich text editor for Rails.",
   "type": "module",
   "main": "src/index.js",
