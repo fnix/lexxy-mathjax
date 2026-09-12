@@ -6,6 +6,7 @@
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
+    "./typeset": "./src/typeset.js",
     "./styles": "./styles/lexxy-mathjax.css"
   },
   "files": [
