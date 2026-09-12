@@ -75,7 +75,7 @@ export class MathNode extends DecoratorNode {
 
   exportDOM() {
     const element = document.createElement(this.__display ? "div" : "span")
-    element.className = "lexxy-math"
+    element.className = this.__display ? "lexxy-math lexxy-math--display" : "lexxy-math"
     element.setAttribute("data-latex", this.__latex)
     element.textContent = this.__latex
     return { element }

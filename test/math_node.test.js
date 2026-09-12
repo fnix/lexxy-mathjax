@@ -77,6 +77,7 @@ describe("MathNode", () => {
 
       expect(element.tagName).toBe("DIV")
       expect(element.getAttribute("data-latex")).toBe("\\int_0^1 x\\,dx")
+      expect(element.className).toBe("lexxy-math lexxy-math--display")
     })
   })
 
