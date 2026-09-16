@@ -23,27 +23,33 @@ lexxy-editor .lexxy-math:hover {
 
 lexxy-editor .lexxy-math.selected,
 lexxy-editor [data-lexical-decorator="true"]:focus .lexxy-math {
-  outline: 2px solid var(--lexxy-focus-color, #2563eb);
+  outline: 2px solid var(--lexxy-math-focus-color, #2563eb);
 }
 
 .lexxy-math--error {
-  color: #b91c1c;
+  color: var(--lexxy-math-error-color, #b91c1c);
   font-family: monospace;
-  outline: 1px dashed #b91c1c;
+  outline: 1px dashed var(--lexxy-math-error-color, #b91c1c);
 }
 
 /* Equation editor dialog */
 
 .lexxy-math-editor::backdrop {
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--lexxy-math-backdrop-color, rgba(0, 0, 0, 0.35));
 }
 
 .lexxy-math-editor {
+  /* Restores the UA's `dialog:modal { margin: auto }` centring, which any host reset
+     that zeroes margin on `*` (Tailwind preflight, normalize.css, Bootstrap reboot)
+     overrides — author origin beats UA origin regardless of cascade layers. Do not remove. */
+  margin: auto;
   min-width: min(28rem, 90vw);
-  border: 1px solid #d4d4d8;
-  border-radius: 0.5rem;
+  background: var(--lexxy-math-dialog-bg, Canvas);
+  color: var(--lexxy-math-text-color, CanvasText);
+  border: 1px solid var(--lexxy-math-dialog-border-color, #d4d4d8);
+  border-radius: var(--lexxy-math-dialog-radius, 0.5rem);
   padding: 1rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--lexxy-math-dialog-shadow, 0 10px 30px rgba(0, 0, 0, 0.15));
 }
 
 .lexxy-math-editor form {
@@ -57,15 +63,17 @@ lexxy-editor [data-lexical-decorator="true"]:focus .lexxy-math {
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.85rem;
-  color: #52525b;
+  color: var(--lexxy-math-muted-color, #52525b);
 }
 
 .lexxy-math-editor textarea {
   font-family: ui-monospace, monospace;
   font-size: 0.95rem;
   padding: 0.5rem;
-  border: 1px solid #d4d4d8;
-  border-radius: 0.375rem;
+  background: var(--lexxy-math-input-bg, Field);
+  color: var(--lexxy-math-input-text-color, FieldText);
+  border: 1px solid var(--lexxy-math-input-border-color, #d4d4d8);
+  border-radius: var(--lexxy-math-input-radius, 0.375rem);
   resize: vertical;
 }
 
@@ -75,8 +83,8 @@ lexxy-editor [data-lexical-decorator="true"]:focus .lexxy-math {
   align-items: center;
   justify-content: center;
   padding: 0.5rem;
-  border: 1px dashed #d4d4d8;
-  border-radius: 0.375rem;
+  border: 1px dashed var(--lexxy-math-input-border-color, #d4d4d8);
+  border-radius: var(--lexxy-math-input-radius, 0.375rem);
   overflow-x: auto;
 }
 
@@ -101,14 +109,15 @@ lexxy-editor [data-lexical-decorator="true"]:focus .lexxy-math {
 
 .lexxy-math-editor__actions button {
   padding: 0.35rem 0.9rem;
-  border-radius: 0.375rem;
-  border: 1px solid #d4d4d8;
-  background: white;
+  border-radius: var(--lexxy-math-input-radius, 0.375rem);
+  border: 1px solid var(--lexxy-math-input-border-color, #d4d4d8);
+  background: var(--lexxy-math-dialog-bg, Canvas);
+  color: var(--lexxy-math-text-color, CanvasText);
   cursor: pointer;
 }
 
 .lexxy-math-editor__actions button[data-behavior="confirm"] {
-  background: var(--lexxy-focus-color, #2563eb);
-  border-color: var(--lexxy-focus-color, #2563eb);
-  color: white;
+  background: var(--lexxy-math-focus-color, #2563eb);
+  border-color: var(--lexxy-math-focus-color, #2563eb);
+  color: var(--lexxy-math-focus-content-color, white);
 }

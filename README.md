@@ -79,6 +79,40 @@ This package persists raw LaTeX (`data-latex`) and re-typesets it on every load,
 - **Font-size macros changed in MathJax 4.1.2** (`\tiny`/`\Tiny` swapped, `\large`…`\Huge` shifted by one), so existing content can render at a different size. Opt out with the `fontsizev3` TeX package (`loader: { load: ["[tex]/fontsizev3"] }, tex: { packages: { "[+]": ["fontsizev3"] } }`) if you pin a floating `@4` range.
 - **Accessibility moved, but only for math MathJax typesets itself.** v4 turns assistive MathML off by default and turns the expression explorer (speech/braille) on instead. MathJax's own docs warn that math inserted via a direct conversion call — `tex2chtmlPromise`/`tex2svgPromise`, which is what this package uses, both in the editor and on display pages — "will not become part of the list of math expressions that MathJax knows about in the page", so the explorer never attaches to it. Both `createDOM` (editor) and `typesetMath` (display pages) compensate by setting `role="math"` / `aria-label="Equation: ..."` on every equation directly, rather than relying on the explorer.
 
+## Theming
+
+The equation editor dialog (`<lexxy-math-editor>`) is styled entirely through CSS custom properties. Set any of these on `:root` or on an ancestor of the dialog to restyle it — a host that sets none gets exactly the defaults below, unchanged:
+
+| Property | Default | Controls |
+| --- | --- | --- |
+| `--lexxy-math-backdrop-color` | `rgba(0, 0, 0, 0.35)` | `::backdrop` behind the modal |
+| `--lexxy-math-dialog-bg` | `Canvas` | dialog surface, button faces |
+| `--lexxy-math-dialog-border-color` | `#d4d4d8` | dialog border |
+| `--lexxy-math-dialog-radius` | `0.5rem` | dialog corner radius |
+| `--lexxy-math-dialog-shadow` | `0 10px 30px rgba(0, 0, 0, 0.15)` | dialog drop shadow |
+| `--lexxy-math-text-color` | `CanvasText` | dialog and button text |
+| `--lexxy-math-muted-color` | `#52525b` | the "LaTeX" field label |
+| `--lexxy-math-input-bg` | `Field` | textarea background |
+| `--lexxy-math-input-text-color` | `FieldText` | textarea text |
+| `--lexxy-math-input-border-color` | `#d4d4d8` | textarea, preview and button borders |
+| `--lexxy-math-input-radius` | `0.375rem` | textarea, preview and button radius |
+| `--lexxy-math-focus-color` | `#2563eb` | Save button fill, in-editor selection outline |
+| `--lexxy-math-focus-content-color` | `white` | Save button label |
+| `--lexxy-math-error-color` | `#b91c1c` | failed-equation text and dashed outline |
+
+```css
+:root {
+  --lexxy-math-dialog-bg: var(--my-app-surface);
+  --lexxy-math-dialog-border-color: var(--my-app-border);
+  --lexxy-math-dialog-radius: var(--my-app-radius-lg);
+  --lexxy-math-focus-color: var(--my-app-accent);
+}
+```
+
+`Canvas`, `CanvasText`, `Field` and `FieldText` are the browser's own [system colors](https://developer.mozilla.org/en-US/docs/Web/CSS/system-color): they track the page's light/dark scheme automatically, so the dialog follows the OS or `prefers-color-scheme` without any configuration.
+
+`--lexxy-math-backdrop-color` targets `::backdrop`, which only inherits custom properties from its originating element in newer browser engines. On older engines the backdrop falls back to today's `rgba(0, 0, 0, 0.35)` rather than breaking.
+
 ## Rails / ActionText integration
 
 **1. Allow `data-latex` through the server-side sanitizer** (ActionText strips unknown attributes when rendering):
@@ -211,3 +245,4 @@ The code follows lexxy's own conventions: plain ES modules, vanilla JS, no build
 - `src/typeset_math.js` — `typesetMath(root)`, the display-page renderer; batches conversions and refreshes MathJax's stylesheet once per call instead of once per equation
 - `src/auto_typeset.js` — `startMathjaxAutoTypeset()`, wires `typesetMath` to `DOMContentLoaded`/Turbo events
 - `src/typeset.js` — the `@fnix/lexxy-mathjax/typeset` entry point (re-exports the two above without pulling in lexxy/Lexical)
+- `styles/lexxy-mathjax.css` — presentation for equations and the editor dialog; the `--lexxy-math-*` custom properties it exposes are a public contract (see [Theming](#theming)), covered by `test/styles.test.js`

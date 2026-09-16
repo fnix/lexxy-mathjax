@@ -33,11 +33,44 @@
   <style>
     body { max-width: 48rem; margin: 2rem auto; font-family: system-ui, sans-serif; }
     output { display: block; margin-top: 1rem; padding: 1rem; background: #f4f4f5; border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; }
+
+    /* Theming showcase: restyles the equation editor dialog through the
+       --lexxy-math-* custom properties documented in the README's "Theming" section.
+       Toggled by the "Demo: dark theme" checkbox injected into the dialog itself, below. */
+    html.lexxy-math-dark-demo {
+      --lexxy-math-backdrop-color: rgba(0, 0, 0, 0.6);
+      --lexxy-math-dialog-bg: #18181b;
+      --lexxy-math-dialog-border-color: #3f3f46;
+      --lexxy-math-dialog-radius: 1rem;
+      --lexxy-math-dialog-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      --lexxy-math-text-color: #f4f4f5;
+      --lexxy-math-muted-color: #a1a1aa;
+      --lexxy-math-input-bg: #27272a;
+      --lexxy-math-input-text-color: #f4f4f5;
+      --lexxy-math-input-border-color: #3f3f46;
+      --lexxy-math-focus-color: #34d399;
+      --lexxy-math-focus-content-color: #052e1c;
+    }
+
+    /* Demo-only affordance, injected into the dialog by the script below — not part of the
+       package. Styled with the dialog's own tokens so it looks native, not bolted on. */
+    .lexxy-math-editor-demo-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--lexxy-math-muted-color, #52525b);
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.25rem;
+      border-bottom: 1px dashed var(--lexxy-math-input-border-color, #d4d4d8);
+    }
   </style>
 </head>
 <body>
   <h1>@fnix/lexxy-mathjax demo</h1>
-  <p>Use the √x toolbar button (or <kbd>Cmd/Ctrl+Shift+E</kbd>) to insert an equation. Click an equation to edit it.</p>
+  <p>Use the √x toolbar button (or <kbd>Cmd/Ctrl+Shift+E</kbd>) to insert an equation. Click an equation to edit
+    it. Once it's open, use its "Demo: dark theme" toggle to preview the <code>--lexxy-math-*</code> theming
+    properties from the README's "Theming" section — it only restyles the dialog, not the rest of this page.</p>
 
   <lexxy-editor name="content" value="&lt;p&gt;The identity &lt;span data-latex='e^{i\pi} + 1 = 0'&gt;e^{i\pi} + 1 = 0&lt;/span&gt; loads from saved HTML.&lt;/p&gt;&lt;div data-latex='\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}'&gt;\int...&lt;/div&gt;&lt;p&gt;Try editing them.&lt;/p&gt;"></lexxy-editor>
 
@@ -60,6 +93,27 @@
     const editor = document.querySelector("lexxy-editor")
     const output = document.getElementById("html-output")
     const displayOutput = document.getElementById("display-output")
+
+    // The dialog is created lazily on first open (see #findOrCreateDialog in
+    // mathjax_extension.js), so watch for it and inject the demo's theme toggle once, right
+    // into the dialog — a checkbox living on the page behind the modal backdrop is barely
+    // reachable while the dialog has focus, so put it where its effect is actually visible.
+    new MutationObserver(() => {
+      const dialogElement = document.querySelector("lexxy-math-editor")
+      const form = dialogElement?.querySelector("form")
+      if (!form || form.querySelector(".lexxy-math-editor-demo-toggle")) return
+
+      const toggle = document.createElement("label")
+      toggle.className = "lexxy-math-editor-demo-toggle"
+      toggle.innerHTML = `<input type="checkbox"> Demo: dark theme`
+      form.prepend(toggle)
+
+      const checkbox = toggle.querySelector("input")
+      checkbox.checked = document.documentElement.classList.contains("lexxy-math-dark-demo")
+      checkbox.addEventListener("change", () => {
+        document.documentElement.classList.toggle("lexxy-math-dark-demo", checkbox.checked)
+      })
+    }).observe(document.body, { childList: true })
 
     setInterval(() => {
       const value = editor.value ?? editor.querySelector("input[type=hidden]")?.value
