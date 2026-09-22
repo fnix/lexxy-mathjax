@@ -259,6 +259,20 @@ describe("typesetMath", () => {
     const widened = await typesetMath(root, { selector: "[data-latex]" })
     expect(widened.total).toBe(1)
   })
+
+  it("does not run two concurrent passes over the same elements", async () => {
+    const handle = installFakeMathJax()
+
+    const root = document.createElement("div")
+    root.append(el("span", { latex: "a" }))
+    document.body.append(root)
+
+    const [ first, second ] = await Promise.all([ typesetMath(root), typesetMath(root) ])
+
+    expect(handle.calls).toHaveLength(1)
+    expect(first.typeset + second.typeset).toBe(1)
+    expect(first.skipped + second.skipped).toBe(1)
+  })
 })
 
 describe("typesetInto queue", () => {

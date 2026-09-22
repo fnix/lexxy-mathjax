@@ -1,5 +1,6 @@
 import {
   convertInto,
+  enqueue,
   findMathJax,
   measureContainerWidth,
   refreshDocumentStyles,
@@ -24,7 +25,20 @@ const OUTPUT_ATTRIBUTE = "data-lexxy-math-output"
 // rendered math, for pages that have no editor at all.
 //
 // Never rejects: a single bad equation is reported in the result, not thrown.
-export async function typesetMath(root = document, {
+//
+// Routed through the same queue as typesetInto(): MathJax's conversion
+// pipeline isn't reentrant, and without this, concurrent passes (e.g. an
+// immediate call racing DOMContentLoaded) each build their pending list
+// before the others mark their elements typeset, converting the same
+// equations more than once. The cost is that an editor render queued while a
+// long display pass is running waits for the whole pass to finish; that's
+// cheap in practice once a pass has already run once, because a repeat pass
+// skips everything in a couple of milliseconds.
+export async function typesetMath(root = document, options = {}) {
+  return enqueue(() => typesetMathNow(root, options))
+}
+
+async function typesetMathNow(root, {
   output = "auto",
   selector = DEFAULT_SELECTOR,
   force = false,
