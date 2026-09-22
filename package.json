@@ -34,7 +34,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@37signals/lexxy": ">= 0.9.0"
+    "@37signals/lexxy": ">= 0.9.23"
   },
   "scripts": {
     "test": "vitest run",
