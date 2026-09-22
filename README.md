@@ -79,6 +79,11 @@ This package persists raw LaTeX (`data-latex`) and re-typesets it on every load,
 - **Font-size macros changed in MathJax 4.1.2** (`\tiny`/`\Tiny` swapped, `\large`…`\Huge` shifted by one), so existing content can render at a different size. Opt out with the `fontsizev3` TeX package (`loader: { load: ["[tex]/fontsizev3"] }, tex: { packages: { "[+]": ["fontsizev3"] } }`) if you pin a floating `@4` range.
 - **Accessibility moved, but only for math MathJax typesets itself.** v4 turns assistive MathML off by default and turns the expression explorer (speech/braille) on instead. MathJax's own docs warn that math inserted via a direct conversion call — `tex2chtmlPromise`/`tex2svgPromise`, which is what this package uses, both in the editor and on display pages — "will not become part of the list of math expressions that MathJax knows about in the page", so the explorer never attaches to it. Both `createDOM` (editor) and `typesetMath` (display pages) compensate by setting `role="math"` / `aria-label="Equation: ..."` on every equation directly, rather than relying on the explorer.
 
+If your host has a Content Security Policy, two more v4 behaviours are worth knowing about — both are upstream MathJax behaviour, not something this package can change:
+
+- **The speech/braille explorer loads network resources on every page load**, regardless of whether anything uses it: `sre/speech-worker.js` and three mathmap JSON files. `options.enableSpeech`, `enableBraille` and `enableEnrichment` do **not** stop this — they only control whether speech is generated once those files have loaded. To actually stop the loading, set `options.menuOptions.settings.enrich`, `.speech` and `.braille` to `false`.
+- **MathJax injects several `<style>` elements** (`MJX-CHTML-styles`, `MJX-Menu-styles`, others) that can't carry a CSP nonce — see [mathjax/MathJax#2665](https://github.com/mathjax/MathJax/issues/2665).
+
 ## Theming
 
 The equation editor dialog (`<lexxy-math-editor>`) is styled entirely through CSS custom properties. Set any of these on `:root` or on an ancestor of the dialog to restyle it — a host that sets none gets exactly the defaults below, unchanged:
@@ -144,7 +149,9 @@ import { typesetMath } from "@fnix/lexxy-mathjax/typeset"
 const { total, typeset, failed, skipped, mathjax } = await typesetMath(document.querySelector(".post-body"))
 ```
 
-Options: `output` (`"auto" | "chtml" | "svg"`, default `"auto"` — detects whether the host loaded `tex-chtml` or `tex-svg`), `selector` (default `"[data-latex]"`), `force` (re-typeset elements already rendered), `accessible` (default `true`, adds `role="math"` / `aria-label`).
+Options: `output` (`"auto" | "chtml" | "svg"`, default `"auto"` — detects whether the host loaded `tex-chtml` or `tex-svg`), `selector` (default `"span[data-latex], div[data-latex]"` — matches only the persisted format above, never MathJax's own rendered output even if you widen this or pass `force: true`), `force` (re-typeset elements already rendered), `accessible` (default `true`, adds `role="math"` / `aria-label`).
+
+`typesetMath` shares the same serialization queue as the editor's own typesetting (MathJax's conversion pipeline isn't reentrant), so concurrent calls — including the extra passes `startMathjaxAutoTypeset` can trigger around a Turbo navigation — run one at a time rather than racing. A call queued behind a large display-page pass waits for that pass to finish; in practice this only matters for the very first pass on a page, since a repeat pass over already-typeset content is cheap.
 
 With Stimulus, for per-element control instead of a page-wide listener:
 
