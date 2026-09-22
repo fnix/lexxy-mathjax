@@ -273,6 +273,34 @@ describe("typesetMath", () => {
     expect(first.typeset + second.typeset).toBe(1)
     expect(first.skipped + second.skipped).toBe(1)
   })
+
+  it("yields to the browser instead of blocking a whole pass in one task", async () => {
+    installFakeMathJax()
+
+    const root = document.createElement("div")
+    for (let i = 0; i < 60; i++) root.append(el("span", { latex: `eq${i}` }))
+    document.body.append(root)
+
+    const order = []
+    const typesetting = typesetMath(root).then(() => order.push("typeset"))
+    setTimeout(() => order.push("task"), 0)
+
+    await typesetting
+    expect(order).toEqual([ "task", "typeset" ])
+  })
+
+  it("flushes styles at each yield boundary, not just once for a large batch", async () => {
+    const handle = installFakeMathJax()
+
+    const root = document.createElement("div")
+    for (let i = 0; i < 60; i++) root.append(el("span", { latex: `eq${i}` }))
+    document.body.append(root)
+
+    await typesetMath(root)
+
+    expect(handle.resets).toBeGreaterThan(1)
+    expect(handle.updates).toBeGreaterThan(1)
+  })
 })
 
 describe("typesetInto queue", () => {

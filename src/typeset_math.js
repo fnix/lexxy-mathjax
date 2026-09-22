@@ -18,6 +18,15 @@ const EDITOR_SELECTOR = "lexxy-editor, [contenteditable='true']"
 const MATHJAX_OUTPUT_SELECTOR = "mjx-container"
 const OUTPUT_ATTRIBUTE = "data-lexxy-math-output"
 
+// How many equations to convert before flushing styles and handing the
+// thread back to the browser. A plain macrotask yield (setTimeout), not
+// scheduler.yield(): scheduler.yield() continuations are documented to run
+// ahead of other same-priority tasks, which could keep delaying the
+// follow-up work a click needs (e.g. Turbo's fetch and render) until the
+// whole pass finishes. ~1.7ms/equation on a real page, so this is ~40ms
+// chunks — a starting point, not a tuned constant.
+const YIELD_EVERY = 25
+
 // Typesets every span/div[data-latex] element under root (root itself
 // included, so typesetMath(element) works as well as typesetMath(document)).
 // This is the display-page counterpart to MathNode#createDOM: it turns saved
@@ -72,23 +81,38 @@ async function typesetMathNow(root, {
       })
     }
 
+    let sinceRefresh = 0
+
     for (const { element, latex, display, containerWidth } of pending) {
       applyPresentation(element, display, accessible, latex)
 
       const succeeded = await convertInto(converter, element, latex, { display, containerWidth })
       element.setAttribute(OUTPUT_ATTRIBUTE, succeeded ? converter.name : "error")
 
-      if (succeeded) result.typeset++
+      if (succeeded) { result.typeset++; sinceRefresh++ }
       else result.failed++
+
+      if (sinceRefresh >= YIELD_EVERY) {
+        // Flush now, before yielding: this is what lets the browser paint
+        // the equations converted so far mid-pass, instead of leaving them
+        // unstyled until the whole pass ends.
+        refreshDocumentStyles(mathjax)
+        sinceRefresh = 0
+        await yieldToBrowser()
+      }
     }
 
-    if (result.typeset > 0) refreshDocumentStyles(mathjax)
+    if (sinceRefresh > 0) refreshDocumentStyles(mathjax)
   } catch {
     // typesetMath never rejects: any surprise here is reported via the
     // per-element failed/typeset counts already recorded above.
   }
 
   return result
+}
+
+function yieldToBrowser() {
+  return new Promise((resolve) => setTimeout(resolve, 0))
 }
 
 function collectElements(root, selector) {
