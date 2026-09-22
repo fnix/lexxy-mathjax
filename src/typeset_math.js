@@ -6,13 +6,20 @@ import {
   resolveConverter
 } from "./helpers/mathjax_helper.js"
 
-const DEFAULT_SELECTOR = "[data-latex]"
+// Matches only the saved format (see the "persisted format" README section),
+// not MathJax's own output. MathJax 4's TeX input jax stamps `data-latex` on
+// the MML it produces (TexConstants.Attr.LATEX), and CommonWrapper doesn't
+// strip it, so it survives onto the rendered `mjx-*` elements too — a plain
+// "[data-latex]" would match those and re-typeset them. MathJax 3 doesn't do
+// this, but a tag-qualified selector costs nothing there either.
+const DEFAULT_SELECTOR = "span[data-latex], div[data-latex]"
 const EDITOR_SELECTOR = "lexxy-editor, [contenteditable='true']"
+const MATHJAX_OUTPUT_SELECTOR = "mjx-container"
 const OUTPUT_ATTRIBUTE = "data-lexxy-math-output"
 
-// Typesets every [data-latex] element under root (root itself included, so
-// typesetMath(element) works as well as typesetMath(document)). This is the
-// display-page counterpart to MathNode#createDOM: it turns saved
+// Typesets every span/div[data-latex] element under root (root itself
+// included, so typesetMath(element) works as well as typesetMath(document)).
+// This is the display-page counterpart to MathNode#createDOM: it turns saved
 // `<span data-latex="...">`/`<div data-latex="...">` markup back into
 // rendered math, for pages that have no editor at all.
 //
@@ -77,6 +84,11 @@ function collectElements(root, selector) {
 
 function shouldSkip(element, converter, force) {
   if (element.closest(EDITOR_SELECTOR)) return true
+  // Never descend into MathJax's own output, even for an explicit selector
+  // or force: true — there's nothing a host could want typeset in there.
+  // parentElement (not element itself), so a selector that targets an
+  // mjx-container directly is still honoured.
+  if (element.parentElement?.closest(MATHJAX_OUTPUT_SELECTOR)) return true
   if (force) return false
 
   const rendered = element.getAttribute(OUTPUT_ATTRIBUTE)

@@ -203,6 +203,62 @@ describe("typesetMath", () => {
     expect(span.hasAttribute("role")).toBe(false)
     expect(span.hasAttribute("aria-label")).toBe(false)
   })
+
+  describe("does not descend into MathJax's own output", () => {
+    it("does not re-typeset the data-latex nodes a MathJax 4 render produces", async () => {
+      const handle = installFakeMathJax()
+
+      const root = document.createElement("div")
+      root.append(el("span", { latex: "a" }))
+      document.body.append(root)
+
+      await typesetMath(root)
+      const second = await typesetMath(root)
+
+      // The default selector (span/div only) never even collects MathJax's
+      // own mjx-* output nodes, so the count stays at the one source span.
+      expect(second).toEqual({ total: 1, typeset: 0, failed: 0, skipped: 1, mathjax: true })
+      expect(handle.calls).toHaveLength(1)
+      expect(root.querySelectorAll("mjx-container")).toHaveLength(1)
+    })
+
+    it("excludes MathJax output even with a widened selector and force: true", async () => {
+      const handle = installFakeMathJax()
+
+      const root = document.createElement("div")
+      root.append(el("span", { latex: "a" }))
+      document.body.append(root)
+
+      await typesetMath(root)
+      // Widen past the default span/div selector, and force re-typesetting:
+      // this is the case a host selector or force: true could otherwise
+      // reach into MathJax's own mjx-math/mjx-mi output.
+      const result = await typesetMath(root, { selector: "[data-latex]", force: true })
+
+      // The selector now matches all three (span, mjx-math, mjx-mi), but
+      // only the source span is actually converted — the other two are
+      // strictly inside the mjx-container and are always skipped.
+      expect(result.total).toBe(3)
+      expect(result.skipped).toBe(2)
+      expect(handle.calls).toHaveLength(2) // one from the first pass, one from this forced re-convert
+      expect(root.querySelectorAll("mjx-container")).toHaveLength(1) // no nesting
+    })
+  })
+
+  it("only collects span/div[data-latex] by default, but honors a wider selector", async () => {
+    installFakeMathJax()
+
+    const root = document.createElement("div")
+    const paragraph = el("p", { latex: "a" })
+    root.append(paragraph)
+    document.body.append(root)
+
+    const defaultResult = await typesetMath(root)
+    expect(defaultResult).toEqual({ total: 0, typeset: 0, failed: 0, skipped: 0, mathjax: true })
+
+    const widened = await typesetMath(root, { selector: "[data-latex]" })
+    expect(widened.total).toBe(1)
+  })
 })
 
 describe("typesetInto queue", () => {
